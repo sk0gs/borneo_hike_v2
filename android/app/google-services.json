@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "318671892859",
+    "project_id": "borneo-hike",
+    "storage_bucket": "borneo-hike.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318671892859:android:2723744c23f70078e4cdde",
+        "android_client_info": {
+          "package_name": "com.example.borneo_hike_v2"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyB48UIw6HPD-g-C-6Dp-jiNtXqtgXbHd88"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

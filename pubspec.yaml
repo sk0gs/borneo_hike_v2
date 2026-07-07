@@ -1,0 +1,40 @@
+name: borneo_hike_v2
+description: "Borneo Hiking & Trail Safety App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase (Critical for Login & Data)
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.3
+
+  # Navigation & Storage
+  go_router: ^14.0.0
+  shared_preferences: ^2.3.2
+
+  # Maps & GPS
+  flutter_map: ^8.3.0
+  latlong2: ^0.9.1
+  geolocator: ^13.0.1
+
+  # Tools
+  image_picker: ^1.1.2
+  share_plus: ^10.1.0
+  intl: ^0.19.0
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
