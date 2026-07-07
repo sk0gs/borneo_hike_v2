@@ -76,8 +76,8 @@ class _FloatingNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Increased bottom padding to 250 to lift the bar higher from the bottom edge
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 250),
+      // Increased bottom padding to 300 to lift the bar even higher
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 300),
       child: Container(
         height: 64,
         decoration: BoxDecoration(
