@@ -103,13 +103,20 @@ class ArticleDetailScreen extends StatelessWidget {
                     letterSpacing: -0.3,
                   ),
                 ),
-
+                if (data['Source'] != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Source: ${data['Source']}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
-
                 Divider(color: Colors.white.withValues(alpha: 0.07), height: 1),
-
                 const SizedBox(height: 20),
-
                 Text(
                   data['content'] ?? 'No content available.',
                   style: TextStyle(
