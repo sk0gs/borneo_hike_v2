@@ -13,6 +13,8 @@ import 'package:borneo_hike_v2/features/hike/screens/hike_summary_screen.dart';
 import 'package:borneo_hike_v2/features/auth/screens/login_screen.dart';
 import 'package:borneo_hike_v2/features/auth/screens/register_screen.dart';
 import 'package:borneo_hike_v2/features/home/screens/article_detail_screen.dart';
+import 'package:borneo_hike_v2/features/profile/screens/hike_history.dart';
+import 'package:borneo_hike_v2/features/profile/screens/user_statistics.dart';
 import 'package:borneo_hike_v2/models/trail.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -70,6 +72,14 @@ final GoRouter appRouter = GoRouter(
         final article = state.extra as DocumentSnapshot;
         return ArticleDetailScreen(article: article);
       },
+    ),
+    GoRoute(
+      path: '/hike-history',
+      builder: (_, __) => const HikeHistoryScreen(),
+    ),
+    GoRoute(
+      path: '/user-statistics',
+      builder: (_, __) => const UserStatisticsScreen(),
     ),
   ],
 );

@@ -195,12 +195,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _MenuItem(
                     icon: Icons.history_rounded,
                     label: 'Hike History',
-                    onTap: () {},
+                    onTap: () => context.push('/hike-history'),
                   ),
                   _MenuItem(
                     icon: Icons.bar_chart_rounded,
                     label: 'Statistics',
-                    onTap: () {},
+                    onTap: () => context.push('/user-statistics'),
                   ),
                 ]),
 

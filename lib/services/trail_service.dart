@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/trail.dart';
+import '../models/hike_record.dart';
+
 
 class TrailService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -53,5 +56,22 @@ class TrailService {
       'totalHikes': FieldValue.increment(1),
       'totalDistance': FieldValue.increment(distanceKm),
     });
+  }
+
+  /// Fetch all hike records for the current user, newest first.
+  Future<List<HikeRecord>> getHikeHistory() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return [];
+    try {
+      final snapshot = await _firestore
+          .collection('hike_records')
+          .where('userId', isEqualTo: user.uid)
+          .orderBy('timestamp', descending: true)
+          .get();
+      return snapshot.docs.map((doc) => HikeRecord.fromFirestore(doc)).toList();
+    } catch (e) {
+      debugPrint('getHikeHistory error: $e');
+      return [];
+    }
   }
 }
