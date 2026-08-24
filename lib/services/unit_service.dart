@@ -107,4 +107,14 @@ class UnitService {
   static int formatTempInt(double celsius) {
     return convertTemp(celsius).round();
   }
+
+  static String get windSpeedSymbol => isImperialDistance ? 'mph' : 'km/h';
+
+  static String formatWindSpeed(double speedKmh) {
+    if (isImperialDistance) {
+      final mph = speedKmh * 0.621371;
+      return '${mph.round()} mph';
+    }
+    return '${speedKmh.round()} km/h';
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../theme/app_theme.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
@@ -39,8 +40,9 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -75,20 +77,20 @@ class _FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Padding(
-      // Lifted the bar higher to 60px from the bottom
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 60),
       child: Container(
         height: 64,
         decoration: BoxDecoration(
-          color: const Color(0xFF112D24),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: theme.borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: theme.isDark ? 0.4 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -110,13 +112,13 @@ class _FloatingNavBar extends StatelessWidget {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: isActive
-                          ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
+                          ? theme.primaryAccent.withValues(alpha: 0.15)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       isActive ? item.activeIcon : item.icon,
-                      color: isActive ? const Color(0xFF2ECC71) : Colors.grey[500],
+                      color: isActive ? theme.primaryAccent : theme.subTextColor,
                       size: 24,
                     ),
                   ),

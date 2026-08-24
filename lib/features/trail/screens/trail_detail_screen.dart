@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../models/trail.dart';
 import '../../../services/location_weather_service.dart';
 import '../../../services/unit_service.dart';
+import '../../../core/theme/app_theme.dart';
 
 class TrailDetailScreen extends StatefulWidget {
   final Trail trail;
@@ -50,15 +51,17 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final trail = widget.trail;
+    final theme = AppTheme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: CustomScrollView(
         slivers: [
           // Map header
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
-            backgroundColor: const Color(0xFF0A1F18),
+            backgroundColor: theme.bgColor,
             leading: Padding(
               padding: const EdgeInsets.all(8),
               child: CircleAvatar(
@@ -130,10 +133,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                         children: [
                           Text(
                             trail.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: theme.textColor,
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -141,7 +144,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                           Text(
                             trail.parkName,
                             style: TextStyle(
-                                fontSize: 14, color: Colors.grey[500]),
+                                fontSize: 14, color: theme.subTextColor),
                           ),
                         ],
                       ),
@@ -176,10 +179,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF112D24),
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.06)),
+                        color: theme.borderColor),
                   ),
                   child: Row(
                     children: [
@@ -213,12 +216,12 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
 
                 // Description
                 if (trail.description.isNotEmpty) ...[
-                  const Text(
+                  Text(
                     'About this trail',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: theme.textColor,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -226,7 +229,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                     trail.description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[400],
+                      color: theme.subTextColor,
                       height: 1.6,
                     ),
                   ),
@@ -294,21 +297,22 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   // ── AQI banner ──────────────────────────────────────────────────────────────
 
   Widget _buildAqiBanner() {
+    final theme = AppTheme.of(context);
     if (_aqiLoading) {
       return Container(
         height: 70,
         decoration: BoxDecoration(
-          color: const Color(0xFF112D24),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: theme.borderColor),
         ),
-        child: const Center(
+        child: Center(
           child: SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFF2ECC71),
+              color: theme.primaryAccent,
             ),
           ),
         ),
@@ -320,9 +324,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF112D24),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: theme.borderColor),
       ),
       child: IntrinsicHeight(
         child: Row(

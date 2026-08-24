@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
+import 'package:borneo_hike_v2/core/theme/app_theme.dart';
+import 'package:borneo_hike_v2/services/unit_service.dart';
 import 'package:borneo_hike_v2/models/trail.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -43,8 +45,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -55,12 +59,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Explore',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: theme.textColor,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -70,14 +74,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: theme.textColor, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search trails or parks...',
-                      hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[600], size: 20),
+                      hintStyle: TextStyle(color: theme.subTextColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.search_rounded, color: theme.subTextColor, size: 20),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: Icon(Icons.clear_rounded, color: Colors.grey[600], size: 18),
+                              icon: Icon(Icons.clear_rounded, color: theme.subTextColor, size: 18),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -85,10 +89,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             )
                           : null,
                       filled: true,
-                      fillColor: const Color(0xFF112D24),
+                      fillColor: theme.cardColor,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: theme.borderColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: theme.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: theme.primaryAccent),
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -113,16 +125,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF2ECC71)
-                                  : const Color(0xFF112D24),
+                                  ? theme.primaryAccent
+                                  : theme.cardColor,
                               borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? theme.primaryAccent
+                                    : theme.borderColor,
+                              ),
                             ),
                             child: Text(
                               d,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.black : Colors.grey[400],
+                                color: isSelected ? Colors.black : theme.subTextColor,
                               ),
                             ),
                           ),
@@ -135,7 +152,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
 
-            // Map
+            // Map & List
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('trails').snapshots(),
               builder: (context, snapshot) {
@@ -156,12 +173,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         onTap: () => context.push('/trail-detail', extra: trail),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2ECC71),
+                            color: theme.primaryAccent,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF2ECC71).withValues(alpha: 0.4),
+                                color: theme.primaryAccent.withValues(alpha: 0.4),
                                 blurRadius: 8,
                               ),
                             ],
@@ -191,7 +208,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 return Expanded(
                   child: Column(
                     children: [
-                      // Map (55% of remaining space)
+                      // Map
                       Expanded(
                         flex: 11,
                         child: Padding(
@@ -218,67 +235,75 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Trail list (remaining space)
+                      // Trail list
                       Expanded(
                         flex: 9,
                         child: displayTrails.isEmpty
                             ? Center(
                                 child: Text(
                                   'No trails found.',
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  style: TextStyle(color: theme.subTextColor),
                                 ),
                               )
-                            : ListView.separated(
-                                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                                itemCount: displayTrails.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                                itemBuilder: (context, i) {
-                                  final trail = displayTrails[i];
-                                  return GestureDetector(
-                                    onTap: () => context.push('/trail-detail', extra: trail),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF112D24),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: Colors.white.withValues(alpha: 0.06)),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  trail.name,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  '${trail.parkName}  •  ${trail.distanceKm} km  •  ${trail.difficulty}',
-                                                  style: TextStyle(
-                                                      fontSize: 12, color: Colors.grey[500]),
-                                                ),
-                                              ],
-                                            ),
+                            : ValueListenableBuilder<DistanceUnit>(
+                                valueListenable: UnitService.distanceUnitNotifier,
+                                builder: (context, _, __) {
+                                  return ListView.separated(
+                                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                                    itemCount: displayTrails.length,
+                                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                    itemBuilder: (context, i) {
+                                      final trail = displayTrails[i];
+                                      return GestureDetector(
+                                        onTap: () => context.push('/trail-detail', extra: trail),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 14, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            color: theme.cardColor,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: theme.borderColor),
                                           ),
-                                          IconButton(
-                                            icon: Icon(Icons.my_location_rounded,
-                                                color: _difficultyColor(trail.difficulty),
-                                                size: 20),
-                                            onPressed: () => _focusTrail(trail),
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      trail.name,
+                                                      style: TextStyle(
+                                                        color: theme.textColor,
+                                                        fontWeight: FontWeight.w600,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      '${trail.parkName}  •  ${UnitService.formatDistance(trail.distanceKm)}  •  ${trail.difficulty}',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: theme.subTextColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.my_location_rounded,
+                                                  color: _difficultyColor(trail.difficulty),
+                                                  size: 20,
+                                                ),
+                                                onPressed: () => _focusTrail(trail),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),

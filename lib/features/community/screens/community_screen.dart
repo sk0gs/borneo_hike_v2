@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/comments_sheet.dart';
+import '../../../core/theme/app_theme.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -71,8 +72,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -82,12 +84,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
                 children: [
-                  const Text(
+                  Text(
                     'Community',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: theme.textColor,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -100,9 +102,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF112D24),
+                  color: theme.cardColor,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  border: Border.all(color: theme.borderColor),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -112,10 +114,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         controller: _postController,
                         maxLines: 3,
                         minLines: 1,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: TextStyle(color: theme.textColor, fontSize: 14),
                         decoration: InputDecoration(
                           hintText: "What's happening on the trail?",
-                          hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+                          hintStyle: TextStyle(color: theme.subTextColor, fontSize: 14),
                           border: InputBorder.none,
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -194,12 +196,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           (post['userName'] as String? ?? 'H')[0].toUpperCase();
 
                       return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF112D24),
+                          color: theme.cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border:
-                              Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                          border: Border.all(color: theme.borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,11 +212,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 CircleAvatar(
                                   radius: 18,
                                   backgroundColor:
-                                      const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                                      theme.primaryAccent.withValues(alpha: 0.15),
                                   child: Text(
                                     initials,
-                                    style: const TextStyle(
-                                      color: Color(0xFF2ECC71),
+                                    style: TextStyle(
+                                      color: theme.primaryAccent,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
                                     ),
@@ -226,16 +228,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   children: [
                                     Text(
                                       post['userName'] ?? 'Hiker',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14,
-                                        color: Colors.white,
+                                        color: theme.textColor,
                                       ),
                                     ),
                                     Text(
                                       'Borneo Trails',
                                       style: TextStyle(
-                                          fontSize: 11, color: Colors.grey[600]),
+                                          fontSize: 11, color: theme.subTextColor),
                                     ),
                                   ],
                                 ),
@@ -249,8 +251,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               post['content'] ?? '',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[200],
-                                height: 1.5,
+                                color: theme.textColor,
+                                height: 1.4,
                               ),
                             ),
 

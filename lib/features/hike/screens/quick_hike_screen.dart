@@ -3,6 +3,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../../models/trail.dart';
 import '../../../services/trail_service.dart';
+import '../../../services/unit_service.dart';
+import '../../../core/theme/app_theme.dart';
 
 class QuickHikeScreen extends StatefulWidget {
   const QuickHikeScreen({super.key});
@@ -66,8 +68,9 @@ class _QuickHikeScreenState extends State<QuickHikeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -79,12 +82,12 @@ class _QuickHikeScreenState extends State<QuickHikeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Start a Hike',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: theme.textColor,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -183,12 +186,14 @@ class _QuickHikeScreenState extends State<QuickHikeScreen> {
                         onTap: () =>
                             context.push('/safety-checkin', extra: trail),
                         child: Container(
-                          padding: const EdgeInsets.all(18),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF112D24),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.06)),
+                              color: theme.borderColor,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -211,8 +216,8 @@ class _QuickHikeScreenState extends State<QuickHikeScreen> {
                                   children: [
                                     Text(
                                       trail.name,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: theme.textColor,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 15,
                                       ),
@@ -221,14 +226,19 @@ class _QuickHikeScreenState extends State<QuickHikeScreen> {
                                     Text(
                                       trail.parkName,
                                       style: TextStyle(
-                                          fontSize: 12, color: Colors.grey[500]),
+                                          fontSize: 12, color: theme.subTextColor),
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
                                       children: [
-                                        _InfoChip(
-                                          label: '${trail.distanceKm} km',
-                                          icon: Icons.straighten_rounded,
+                                        ValueListenableBuilder<DistanceUnit>(
+                                          valueListenable: UnitService.distanceUnitNotifier,
+                                          builder: (context, _, __) {
+                                            return _InfoChip(
+                                              label: UnitService.formatDistance(trail.distanceKm),
+                                              icon: Icons.straighten_rounded,
+                                            );
+                                          },
                                         ),
                                         const SizedBox(width: 8),
                                         _InfoChip(

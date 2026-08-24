@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/hike_record.dart';
 import '../../../services/trail_service.dart';
 import '../../../services/unit_service.dart';
+import '../../../core/theme/app_theme.dart';
 
 // ── Period filter ─────────────────────────────────────────────────────────────
 enum _Period { week, month, allTime }
@@ -157,12 +158,13 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF2ECC71),
+                color: theme.primaryAccent,
                 strokeWidth: 2,
               ),
             )
@@ -170,23 +172,23 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen>
               slivers: [
                 // ── App Bar ─────────────────────────────────────────────
                 SliverAppBar(
-                  backgroundColor: const Color(0xFF112D24),
-                  foregroundColor: Colors.white,
+                  backgroundColor: theme.cardColor,
+                  foregroundColor: theme.textColor,
                   pinned: true,
                   expandedHeight: 110,
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.fromLTRB(16, 0, 0, 14),
-                    title: const Text(
+                    title: Text(
                       'Statistics',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        color: theme.textColor,
+                      ),
                     ),
                     background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF1A3E2E), Color(0xFF112D24)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
                       ),
                     ),
                   ),
@@ -194,7 +196,7 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen>
                     preferredSize: const Size.fromHeight(1),
                     child: Container(
                       height: 1,
-                      color: Colors.white.withValues(alpha: 0.06),
+                      color: theme.borderColor,
                     ),
                   ),
                 ),
@@ -552,12 +554,13 @@ class _HighlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF112D24),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: theme.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,17 +569,17 @@ class _HighlightCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: theme.textColor,
               height: 1,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 12, color: theme.subTextColor),
           ),
         ],
       ),
@@ -654,18 +657,19 @@ class _LifetimeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF112D24),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: theme.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: const Color(0xFF2ECC71), size: 18),
+          Icon(icon, color: theme.primaryAccent, size: 18),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -675,10 +679,10 @@ class _LifetimeTile extends StatelessWidget {
                   Flexible(
                     child: Text(
                       value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: theme.textColor,
                         height: 1,
                       ),
                     ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/hike_record.dart';
 import '../../../services/trail_service.dart';
 import '../../../services/unit_service.dart';
+import '../../../core/theme/app_theme.dart';
 
 class HikeHistoryScreen extends StatefulWidget {
   const HikeHistoryScreen({super.key});
@@ -35,40 +36,41 @@ class _HikeHistoryScreenState extends State<HikeHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: RefreshIndicator(
-        color: const Color(0xFF2ECC71),
-        backgroundColor: const Color(0xFF112D24),
+        color: theme.primaryAccent,
+        backgroundColor: theme.cardColor,
         onRefresh: _load,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // ── App Bar ────────────────────────────────────────────────────
             SliverAppBar(
-              backgroundColor: const Color(0xFF112D24),
-              foregroundColor: Colors.white,
+              backgroundColor: theme.cardColor,
+              foregroundColor: theme.textColor,
               pinned: true,
               expandedHeight: 110,
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: const EdgeInsets.fromLTRB(16, 0, 0, 14),
-                title: const Text(
+                title: Text(
                   'Hike History',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: theme.textColor,
+                  ),
                 ),
                 background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF1A3E2E), Color(0xFF112D24)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
                   ),
                 ),
               ),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
-                child: Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+                child: Container(height: 1, color: theme.borderColor),
               ),
             ),
 
@@ -241,6 +243,7 @@ class _HikeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -249,17 +252,17 @@ class _HikeCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF112D24),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isExpanded
-                ? const Color(0xFF2ECC71).withValues(alpha: 0.4)
-                : Colors.white.withValues(alpha: 0.06),
+                ? theme.primaryAccent.withValues(alpha: 0.4)
+                : theme.borderColor,
           ),
           boxShadow: isExpanded
               ? [
                   BoxShadow(
-                    color: const Color(0xFF2ECC71).withValues(alpha: 0.06),
+                    color: theme.primaryAccent.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -293,10 +296,10 @@ class _HikeCard extends StatelessWidget {
                     children: [
                       Text(
                         record.trailName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: theme.textColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -304,7 +307,7 @@ class _HikeCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         record.parkName,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 12, color: theme.subTextColor),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

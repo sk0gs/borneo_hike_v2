@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
-
+import 'package:borneo_hike_v2/core/theme/app_theme.dart';
 import 'package:borneo_hike_v2/services/location_weather_service.dart';
 import 'package:borneo_hike_v2/services/user_service.dart';
 import 'package:borneo_hike_v2/services/trail_service.dart';
@@ -17,8 +17,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _userService = UserService();
-  final _trailService = TrailService();
+  final UserService _userService = UserService();
+  final TrailService _trailService = TrailService();
+
   String _greeting = 'Good Morning';
   String _userName = 'Hiker';
   WeatherData? _weather;
@@ -44,24 +45,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([_loadUserData(), _loadWeather()]);
+    _loadUser();
+    _loadWeather();
   }
 
-  Future<void> _loadUserData() async {
-    try {
-      final user = await _userService.getUser();
-      if (user != null && mounted) {
-        setState(() => _userName = user.name.split(' ').first);
-      }
-    } catch (e) {
-      debugPrint('User data error: $e');
+  Future<void> _loadUser() async {
+    final user = await _userService.getUser();
+    if (user != null && mounted) {
+      setState(() => _userName = user.name);
     }
   }
 
   Future<void> _loadWeather() async {
     try {
       final pos = await LocationWeatherService.getCurrentPosition();
-      // Start both requests concurrently — same GPS fix, two endpoints
       final weatherFuture =
           LocationWeatherService.getWeather(pos.latitude, pos.longitude);
       final aqiFuture =
@@ -88,21 +85,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1F18),
+      backgroundColor: theme.bgColor,
       body: RefreshIndicator(
         onRefresh: _loadData,
-        color: const Color(0xFF2ECC71),
-        backgroundColor: const Color(0xFF1A3F2E),
+        color: theme.primaryAccent,
+        backgroundColor: theme.cardSecondaryColor,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
-              backgroundColor: const Color(0xFF0A1F18),
+              backgroundColor: theme.bgColor,
               pinned: true,
-              title: const Text(
+              title: Text(
                 'BorneoHike',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: Colors.white),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: theme.textColor,
+                ),
               ),
               centerTitle: false,
               actions: [
@@ -110,38 +113,68 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.only(right: 16),
                   child: CircleAvatar(
                     radius: 18,
-                    backgroundColor: const Color(0xFF1A3F2E),
+                    backgroundColor: theme.cardSecondaryColor,
                     child: Text(
                       _userName.isNotEmpty ? _userName[0].toUpperCase() : 'H',
-                      style: const TextStyle(color: Color(0xFF2ECC71), fontWeight: FontWeight.w700, fontSize: 14),
+                      style: TextStyle(
+                        color: theme.primaryAccent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
             SliverPadding(
-              // Increased bottom padding to 240 so content clears the high floating nav bar
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 240),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  Text('$_greeting,', style: TextStyle(fontSize: 14, color: Colors.grey[500])),
-                  Text(_userName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
+                  Text(
+                    '$_greeting,',
+                    style: TextStyle(fontSize: 14, color: theme.subTextColor),
+                  ),
+                  Text(
+                    _userName,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: theme.textColor,
+                    ),
+                  ),
                   const SizedBox(height: 24),
-                  _buildWeatherCard(),
+                  _buildWeatherCard(theme),
                   const SizedBox(height: 32),
                   Row(
                     children: [
-                      const Text('Available Trails', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                      Text(
+                        'Available Trails',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: theme.textColor,
+                        ),
+                      ),
                       const Spacer(),
-                      Text('See all', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                      Text(
+                        'See all',
+                        style: TextStyle(fontSize: 13, color: theme.subTextColor),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildTrailsList(),
+                  _buildTrailsList(theme),
                   const SizedBox(height: 32),
-                  const Text('Latest from Borneo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                  Text(
+                    'Latest from Borneo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: theme.textColor,
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  _buildArticlesList(),
+                  _buildArticlesList(theme),
                 ]),
               ),
             ),
@@ -151,29 +184,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWeatherCard() {
+  Widget _buildWeatherCard(AppTheme theme) {
     if (_weatherLoading) {
       return Container(
         height: 120,
         decoration: BoxDecoration(
-          color: const Color(0xFF112D24),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.borderColor),
         ),
-        child: const Center(
+        child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF2ECC71),
+            color: theme.primaryAccent,
           ),
         ),
       );
     }
+
     final w = _weather ?? WeatherData.fallback;
     final aqi = _aqi;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF112D24),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: theme.borderColor),
+        boxShadow: theme.isDark ? [] : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,36 +236,43 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                     Text(
                       '$tempInt',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 52,
                         fontWeight: FontWeight.w200,
-                        color: Colors.white,
+                        color: theme.textColor,
                         height: 1,
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(unitSymbol,
-                          style: const TextStyle(fontSize: 20, color: Colors.white60)),
+                      child: Text(
+                        unitSymbol,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: theme.subTextColor,
+                        ),
+                      ),
                     ),
                   ]),
-                  Text(w.description,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+                  Text(
+                    w.description,
+                    style: TextStyle(fontSize: 14, color: theme.subTextColor),
+                  ),
                   Text(
                     'Feels like $feelsLikeInt$unitSymbol • H:$tempHighInt° L:$tempLowInt°',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: theme.subTextColor),
                   ),
                 ]),
                 const Spacer(),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Icon(w.icon, size: 40, color: const Color(0xFF2ECC71)),
+                  Icon(w.icon, size: 40, color: theme.primaryAccent),
                   const SizedBox(height: 8),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: w.isGoodForHiking
-                          ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
+                          ? theme.primaryAccent.withValues(alpha: 0.15)
                           : Colors.orange.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -232,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: w.isGoodForHiking
-                            ? const Color(0xFF2ECC71)
+                            ? theme.primaryAccent
                             : Colors.orange,
                       ),
                     ),
@@ -243,42 +293,66 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           const SizedBox(height: 20),
-          const Divider(color: Colors.white10, height: 1),
+          Divider(color: theme.borderColor, height: 1),
           const SizedBox(height: 16),
 
           Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
             _buildWeatherDetail(
-                Icons.water_drop_outlined, '${w.humidity.round()}%', 'Humidity'),
+              theme,
+              Icons.water_drop_outlined,
+              '${w.humidity.round()}%',
+              'Humidity',
+            ),
+            ValueListenableBuilder<DistanceUnit>(
+              valueListenable: UnitService.distanceUnitNotifier,
+              builder: (context, _, __) {
+                return _buildWeatherDetail(
+                  theme,
+                  Icons.air,
+                  UnitService.formatWindSpeed(w.windSpeed),
+                  'Wind',
+                );
+              },
+            ),
             _buildWeatherDetail(
-                Icons.air, '${w.windSpeed.round()} km/h', 'Wind'),
-            _buildWeatherDetail(
-                Icons.wb_sunny_outlined, 'UV ${w.uvIndex}', 'UV Index'),
+              theme,
+              Icons.wb_sunny_outlined,
+              'UV ${w.uvIndex}',
+              'UV Index',
+            ),
           ]),
 
           // ── AQI strip ────────────────────────────────────────────────
-          if (aqi != null) _buildAqiStrip(aqi),
+          if (aqi != null) _buildAqiStrip(theme, aqi),
         ],
       ),
     );
   }
 
-  Widget _buildWeatherDetail(IconData icon, String value, String label) {
+  Widget _buildWeatherDetail(AppTheme theme, IconData icon, String value, String label) {
     return Column(children: [
-      Icon(icon, color: Colors.grey[500], size: 18),
+      Icon(icon, color: theme.subTextColor, size: 18),
       const SizedBox(height: 4),
-      Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
-      Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: theme.textColor,
+        ),
+      ),
+      Text(label, style: TextStyle(fontSize: 11, color: theme.subTextColor)),
     ]);
   }
 
-  // ── AQI strip (inside weather card) ──────────────────────────────────────────
+  // ── AQI strip ────────────────────────────────────────────────────────────────
 
-  Widget _buildAqiStrip(AqiData aqi) {
+  Widget _buildAqiStrip(AppTheme theme, AqiData aqi) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Divider(color: Colors.white10, height: 1),
+        Divider(color: theme.borderColor, height: 1),
         const SizedBox(height: 14),
 
         // Header row
@@ -289,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+                color: theme.subTextColor,
                 letterSpacing: 0.8,
               ),
             ),
@@ -332,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: aqi.barProgress,
-            backgroundColor: Colors.white.withValues(alpha: 0.07),
+            backgroundColor: theme.borderColor,
             valueColor: AlwaysStoppedAnimation<Color>(aqi.color),
             minHeight: 6,
           ),
@@ -343,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Advice
         Text(
           aqi.advice,
-          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          style: TextStyle(fontSize: 12, color: theme.subTextColor),
         ),
 
         // Pollutant chips
@@ -352,13 +426,22 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               _buildPollutantChip(
-                  'PM2.5', '${aqi.pm25.toStringAsFixed(1)} μg/m³'),
+                theme,
+                'PM2.5',
+                '${aqi.pm25.toStringAsFixed(1)} μg/m³',
+              ),
               const SizedBox(width: 8),
               _buildPollutantChip(
-                  'PM10', '${aqi.pm10.toStringAsFixed(0)} μg/m³'),
+                theme,
+                'PM10',
+                '${aqi.pm10.toStringAsFixed(0)} μg/m³',
+              ),
               const SizedBox(width: 8),
               _buildPollutantChip(
-                  'CO', '${aqi.co.toStringAsFixed(0)} μg/m³'),
+                theme,
+                'CO',
+                '${aqi.co.toStringAsFixed(0)} μg/m³',
+              ),
             ],
           ),
         ],
@@ -366,14 +449,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPollutantChip(String label, String value) {
+  Widget _buildPollutantChip(AppTheme theme, String label, String value) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
+          color: theme.cardSecondaryColor.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: theme.borderColor),
         ),
         child: Column(
           children: [
@@ -381,16 +464,16 @@ class _HomeScreenState extends State<HomeScreen> {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: Colors.grey[600],
+                color: theme.subTextColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: Colors.white70,
+                color: theme.textColor,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -402,50 +485,103 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTrailsList() {
+  Widget _buildTrailsList(AppTheme theme) {
     return StreamBuilder<List<Trail>>(
       stream: _trailService.getTrails(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Color(0xFF2ECC71))));
-        if (snapshot.hasError) return _buildErrorTile('Connection error. Check Firebase rules.');
-        final trails = snapshot.data ?? [];
-        if (trails.isEmpty) return Text('No trails available.', style: TextStyle(color: Colors.grey[600], fontSize: 14));
-        return Column(children: trails.map((trail) => _TrailCard(trail: trail, onTap: () => context.push('/trail-detail', extra: trail))).toList());
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF2ECC71),
+            ),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Text(
+              'No trails available',
+              style: TextStyle(color: theme.subTextColor),
+            ),
+          );
+        }
+        final trails = snapshot.data!;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: trails.length,
+          itemBuilder: (context, index) {
+            final trail = trails[index];
+            return _TrailCard(
+              theme: theme,
+              trail: trail,
+              onTap: () => context.push('/trail-detail', extra: trail),
+            );
+          },
+        );
       },
     );
   }
 
-  Widget _buildArticlesList() {
+  Widget _buildArticlesList(AppTheme theme) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('articles').orderBy('timestamp', descending: true).snapshots(),
+      stream: FirebaseFirestore.instance.collection('articles').snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return _buildErrorTile('Failed to load articles.');
-        if (snapshot.connectionState == ConnectionState.waiting) return const SizedBox();
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return Text('Check back later for news.', style: TextStyle(color: Colors.grey[600], fontSize: 14));
-        return Column(children: snapshot.data!.docs.map((doc) {
-          final article = doc.data() as Map<String, dynamic>;
-          return _ArticleCard(article: article, onTap: () => context.push('/article-detail', extra: doc));
-        }).toList());
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF2ECC71),
+            ),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text(
+              'No articles found',
+              style: TextStyle(color: theme.subTextColor),
+            ),
+          );
+        }
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final article = docs[index];
+            return _ArticleCard(
+              theme: theme,
+              article: article,
+              onTap: () => context.push('/article-detail', extra: article),
+            );
+          },
+        );
       },
     );
-  }
-
-  Widget _buildErrorTile(String message) {
-    return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.withValues(alpha: 0.2))), child: Text(message, style: const TextStyle(color: Colors.redAccent, fontSize: 13)));
   }
 }
 
 class _TrailCard extends StatelessWidget {
+  final AppTheme theme;
   final Trail trail;
   final VoidCallback onTap;
-  const _TrailCard({required this.trail, required this.onTap});
+
+  const _TrailCard({
+    required this.theme,
+    required this.trail,
+    required this.onTap,
+  });
+
   Color _difficultyColor(String diff) {
     switch (diff.toLowerCase()) {
-      case 'easy': return const Color(0xFF2ECC71);
-      case 'hard': return Colors.redAccent;
-      default: return Colors.orangeAccent;
+      case 'easy':
+        return const Color(0xFF2ECC71);
+      case 'hard':
+        return Colors.redAccent;
+      default:
+        return Colors.orangeAccent;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -453,48 +589,163 @@ class _TrailCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(color: const Color(0xFF112D24), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
-        child: Row(children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: trail.color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)), child: Icon(Icons.terrain_rounded, color: trail.color, size: 22)),
-          const SizedBox(width: 14),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(trail.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15)),
-            ValueListenableBuilder<DistanceUnit>(
-              valueListenable: UnitService.distanceUnitNotifier,
-              builder: (context, _, __) {
-                return Text('${trail.parkName} • ${UnitService.formatDistance(trail.distanceKm)}', style: TextStyle(fontSize: 12, color: Colors.grey[500]));
-              },
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.borderColor),
+          boxShadow: theme.isDark ? [] : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-          ])),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: _difficultyColor(trail.difficulty).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)), child: Text(trail.difficulty, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _difficultyColor(trail.difficulty)))),
-          const SizedBox(width: 8),
-          Icon(Icons.chevron_right_rounded, color: Colors.grey[700], size: 20),
-        ]),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: trail.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.terrain_rounded, color: trail.color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    trail.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: theme.textColor,
+                      fontSize: 15,
+                    ),
+                  ),
+                  ValueListenableBuilder<DistanceUnit>(
+                    valueListenable: UnitService.distanceUnitNotifier,
+                    builder: (context, _, __) {
+                      return Text(
+                        '${trail.parkName} • ${UnitService.formatDistance(trail.distanceKm)}',
+                        style: TextStyle(fontSize: 12, color: theme.subTextColor),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _difficultyColor(trail.difficulty)
+                    .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                trail.difficulty,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _difficultyColor(trail.difficulty),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: theme.subTextColor,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _ArticleCard extends StatelessWidget {
-  final Map<String, dynamic> article;
+  final AppTheme theme;
+  final DocumentSnapshot article;
   final VoidCallback onTap;
-  const _ArticleCard({required this.article, required this.onTap});
+
+  const _ArticleCard({
+    required this.theme,
+    required this.article,
+    required this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final data = article.data() as Map<String, dynamic>? ?? {};
+    final title = data['title'] ?? 'Trail Safety Tips';
+    final category = data['category'] ?? 'Safety';
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(color: const Color(0xFF112D24), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (article['imageUrl'] != null)
-            ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(16)), child: Image.network(article['imageUrl'], height: 180, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(height: 120, color: const Color(0xFF1A3F2E), child: Icon(Icons.image_outlined, color: Colors.grey[700], size: 36)))),
-          Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(article['title'] ?? 'Untitled', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-            const SizedBox(height: 6),
-            Text('${article['readTime'] ?? 5} min read • ${article['category'] ?? 'Nature'}', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-          ])),
-        ]),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.borderColor),
+          boxShadow: theme.isDark ? [] : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.primaryAccent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.article_outlined,
+                color: theme.primaryAccent,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: theme.textColor,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    category,
+                    style: TextStyle(fontSize: 12, color: theme.subTextColor),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: theme.subTextColor,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
