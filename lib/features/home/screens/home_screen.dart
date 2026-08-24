@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 
 import 'package:borneo_hike_v2/services/location_weather_service.dart';
 import 'package:borneo_hike_v2/services/user_service.dart';
@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _greeting = 'Good Morning';
   String _userName = 'Hiker';
   WeatherData? _weather;
+  AqiData? _aqi;
   bool _weatherLoading = true;
 
   @override
@@ -59,10 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadWeather() async {
     try {
       final pos = await LocationWeatherService.getCurrentPosition();
-      final weather = await LocationWeatherService.getWeather(pos.latitude, pos.longitude);
+      // Start both requests concurrently — same GPS fix, two endpoints
+      final weatherFuture =
+          LocationWeatherService.getWeather(pos.latitude, pos.longitude);
+      final aqiFuture =
+          LocationWeatherService.getAqi(pos.latitude, pos.longitude);
+      final weather = await weatherFuture;
+      final aqi = await aqiFuture;
       if (mounted) {
         setState(() {
           _weather = weather;
+          _aqi = aqi;
           _weatherLoading = false;
         });
       }
@@ -70,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _weather = WeatherData.fallback;
+          _aqi = AqiData.unavailable;
           _weatherLoading = false;
         });
       }
@@ -143,42 +152,101 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildWeatherCard() {
     if (_weatherLoading) {
-      return Container(height: 120, decoration: BoxDecoration(color: const Color(0xFF112D24), borderRadius: BorderRadius.circular(16)), child: const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71))));
+      return Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: const Color(0xFF112D24),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF2ECC71),
+          ),
+        ),
+      );
     }
     final w = _weather ?? WeatherData.fallback;
+    final aqi = _aqi;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: const Color(0xFF112D24), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.06))),
-      child: Column(children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('${w.temperature.round()}', style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w200, color: Colors.white, height: 1)),
-              const Padding(padding: EdgeInsets.only(bottom: 8), child: Text('°C', style: TextStyle(fontSize: 20, color: Colors.white60))),
+      decoration: BoxDecoration(
+        color: const Color(0xFF112D24),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Weather ──────────────────────────────────────────────────
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Text(
+                  '${w.temperature.round()}',
+                  style: const TextStyle(
+                    fontSize: 52,
+                    fontWeight: FontWeight.w200,
+                    color: Colors.white,
+                    height: 1,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text('°C',
+                      style: TextStyle(fontSize: 20, color: Colors.white60)),
+                ),
+              ]),
+              Text(w.description,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+              Text(
+                'Feels like ${w.feelsLike.round()}°C • H:${w.tempHigh.round()}° L:${w.tempLow.round()}°',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
             ]),
-            Text(w.description, style: TextStyle(fontSize: 14, color: Colors.grey[400])),
-            Text('Feels like ${w.feelsLike.round()}°C • H:${w.tempHigh.round()}° L:${w.tempLow.round()}°', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            const Spacer(),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Icon(w.icon, size: 40, color: const Color(0xFF2ECC71)),
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: w.isGoodForHiking
+                      ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
+                      : Colors.orange.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  w.isGoodForHiking ? 'Good for hiking' : 'Use caution',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: w.isGoodForHiking
+                        ? const Color(0xFF2ECC71)
+                        : Colors.orange,
+                  ),
+                ),
+              ),
+            ]),
           ]),
-          const Spacer(),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Icon(w.icon, size: 40, color: const Color(0xFF2ECC71)),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: w.isGoodForHiking ? const Color(0xFF2ECC71).withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-              child: Text(w.isGoodForHiking ? 'Good for hiking' : 'Use caution', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: w.isGoodForHiking ? const Color(0xFF2ECC71) : Colors.orange)),
-            ),
+
+          const SizedBox(height: 20),
+          const Divider(color: Colors.white10, height: 1),
+          const SizedBox(height: 16),
+
+          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+            _buildWeatherDetail(
+                Icons.water_drop_outlined, '${w.humidity.round()}%', 'Humidity'),
+            _buildWeatherDetail(
+                Icons.air, '${w.windSpeed.round()} km/h', 'Wind'),
+            _buildWeatherDetail(
+                Icons.wb_sunny_outlined, 'UV ${w.uvIndex}', 'UV Index'),
           ]),
-        ]),
-        const SizedBox(height: 20),
-        const Divider(color: Colors.white10, height: 1),
-        const SizedBox(height: 16),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          _buildWeatherDetail(Icons.water_drop_outlined, '${w.humidity.round()}%', 'Humidity'),
-          _buildWeatherDetail(Icons.air, '${w.windSpeed.round()} km/h', 'Wind'),
-          _buildWeatherDetail(Icons.wb_sunny_outlined, 'UV ${w.uvIndex}', 'UV Index'),
-        ]),
-      ]),
+
+          // ── AQI strip ────────────────────────────────────────────────
+          if (aqi != null) _buildAqiStrip(aqi),
+        ],
+      ),
     );
   }
 
@@ -189,6 +257,137 @@ class _HomeScreenState extends State<HomeScreen> {
       Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
       Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
     ]);
+  }
+
+  // ── AQI strip (inside weather card) ──────────────────────────────────────────
+
+  Widget _buildAqiStrip(AqiData aqi) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Divider(color: Colors.white10, height: 1),
+        const SizedBox(height: 14),
+
+        // Header row
+        Row(
+          children: [
+            Text(
+              'AIR QUALITY',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                letterSpacing: 0.8,
+              ),
+            ),
+            const Spacer(),
+            Text(aqi.emoji, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 6),
+            if (!aqi.isUnavailable)
+              Text(
+                '${aqi.usAqi}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: aqi.color,
+                ),
+              ),
+            const SizedBox(width: 6),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: aqi.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                aqi.category,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: aqi.color,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        // Progress bar
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: aqi.barProgress,
+            backgroundColor: Colors.white.withValues(alpha: 0.07),
+            valueColor: AlwaysStoppedAnimation<Color>(aqi.color),
+            minHeight: 6,
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Advice
+        Text(
+          aqi.advice,
+          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+        ),
+
+        // Pollutant chips
+        if (!aqi.isUnavailable) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildPollutantChip(
+                  'PM2.5', '${aqi.pm25.toStringAsFixed(1)} μg/m³'),
+              const SizedBox(width: 8),
+              _buildPollutantChip(
+                  'PM10', '${aqi.pm10.toStringAsFixed(0)} μg/m³'),
+              const SizedBox(width: 8),
+              _buildPollutantChip(
+                  'CO', '${aqi.co.toStringAsFixed(0)} μg/m³'),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPollutantChip(String label, String value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildTrailsList() {

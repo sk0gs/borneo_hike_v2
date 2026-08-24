@@ -65,6 +65,81 @@ class WeatherData {
       );
 }
 
+// ── Air Quality Index ─────────────────────────────────────────────────────────
+
+class AqiData {
+  final int usAqi;
+  final double pm25;
+  final double pm10;
+  final double co;
+  final bool isUnavailable;
+
+  const AqiData({
+    required this.usAqi,
+    required this.pm25,
+    required this.pm10,
+    required this.co,
+    this.isUnavailable = false,
+  });
+
+  // ── US EPA bands ────────────────────────────────────────────────────────────
+
+  String get category {
+    if (isUnavailable) return 'Unavailable';
+    if (usAqi <= 50) return 'Good';
+    if (usAqi <= 100) return 'Moderate';
+    if (usAqi <= 150) return 'Unhealthy for Sensitive';
+    if (usAqi <= 200) return 'Unhealthy';
+    if (usAqi <= 300) return 'Very Unhealthy';
+    return 'Hazardous';
+  }
+
+  Color get color {
+    if (isUnavailable) return Colors.grey;
+    if (usAqi <= 50) return const Color(0xFF2ECC71);
+    if (usAqi <= 100) return const Color(0xFFF1C40F);
+    if (usAqi <= 150) return const Color(0xFFE67E22);
+    if (usAqi <= 200) return const Color(0xFFE74C3C);
+    if (usAqi <= 300) return const Color(0xFF9B59B6);
+    return const Color(0xFF922B21);
+  }
+
+  String get emoji {
+    if (isUnavailable) return '❓';
+    if (usAqi <= 50) return '😊';
+    if (usAqi <= 100) return '😐';
+    if (usAqi <= 150) return '😷';
+    if (usAqi <= 200) return '⚠️';
+    if (usAqi <= 300) return '🚫';
+    return '☠️';
+  }
+
+  String get advice {
+    if (isUnavailable) return 'Air quality data unavailable.';
+    if (usAqi <= 50) return 'Great conditions for hiking outdoors.';
+    if (usAqi <= 100) return 'Acceptable — sensitive individuals should take care.';
+    if (usAqi <= 150) return 'Sensitive groups should limit prolonged outdoor exertion.';
+    if (usAqi <= 200) return 'Consider rescheduling your hike today.';
+    if (usAqi <= 300) return 'Avoid outdoor activity — air quality is very poor.';
+    return 'Hazardous — do not hike. Stay indoors.';
+  }
+
+  bool get isSafeForHiking => !isUnavailable && usAqi <= 100;
+  bool get isWarning => !isUnavailable && usAqi > 100 && usAqi <= 150;
+  bool get isDangerous => !isUnavailable && usAqi > 150;
+
+  /// Progress value for a 0–300 scale bar (capped at 1.0).
+  double get barProgress => isUnavailable ? 0.0 : (usAqi / 300.0).clamp(0.0, 1.0);
+
+  static AqiData get unavailable => const AqiData(
+        usAqi: 0,
+        pm25: 0,
+        pm10: 0,
+        co: 0,
+        isUnavailable: true,
+      );
+}
+
 class LocationWeatherService {
   static Future<Position> getCurrentPosition() async {
     try {
@@ -138,6 +213,36 @@ class LocationWeatherService {
       debugPrint('Weather network error: $e');
     }
     return WeatherData.fallback;
+  }
+
+  /// Fetch current AQI data from Open-Meteo Air Quality API.
+  static Future<AqiData> getAqi(double lat, double lon) async {
+    final url = Uri.parse(
+      'https://air-quality-api.open-meteo.com/v1/air-quality'
+      '?latitude=${lat.toStringAsFixed(4)}'
+      '&longitude=${lon.toStringAsFixed(4)}'
+      '&current=us_aqi,pm2_5,pm10,carbon_monoxide'
+      '&timezone=auto',
+    );
+    try {
+      final response =
+          await http.get(url).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data =
+            json.decode(response.body) as Map<String, dynamic>;
+        final current =
+            data['current'] as Map<String, dynamic>? ?? {};
+        return AqiData(
+          usAqi: (current['us_aqi'] ?? 0).toInt(),
+          pm25: (current['pm2_5'] ?? 0).toDouble(),
+          pm10: (current['pm10'] ?? 0).toDouble(),
+          co: (current['carbon_monoxide'] ?? 0).toDouble(),
+        );
+      }
+    } catch (e) {
+      debugPrint('AQI network error: $e');
+    }
+    return AqiData.unavailable;
   }
 
   // Legacy helpers kept for backward compat
