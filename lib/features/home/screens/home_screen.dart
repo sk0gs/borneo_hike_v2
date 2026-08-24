@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:borneo_hike_v2/services/location_weather_service.dart';
 import 'package:borneo_hike_v2/services/user_service.dart';
 import 'package:borneo_hike_v2/services/trail_service.dart';
+import 'package:borneo_hike_v2/services/unit_service.dart';
 import 'package:borneo_hike_v2/models/trail.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -178,57 +179,68 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Weather ──────────────────────────────────────────────────
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(
-                  '${w.temperature.round()}',
-                  style: const TextStyle(
-                    fontSize: 52,
-                    fontWeight: FontWeight.w200,
-                    color: Colors.white,
-                    height: 1,
+          ValueListenableBuilder<TemperatureUnit>(
+            valueListenable: UnitService.tempUnitNotifier,
+            builder: (context, _, __) {
+              final tempInt = UnitService.formatTempInt(w.temperature);
+              final feelsLikeInt = UnitService.formatTempInt(w.feelsLike);
+              final tempHighInt = UnitService.formatTempInt(w.tempHigh);
+              final tempLowInt = UnitService.formatTempInt(w.tempLow);
+              final unitSymbol = UnitService.tempSymbol;
+
+              return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(
+                      '$tempInt',
+                      style: const TextStyle(
+                        fontSize: 52,
+                        fontWeight: FontWeight.w200,
+                        color: Colors.white,
+                        height: 1,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(unitSymbol,
+                          style: const TextStyle(fontSize: 20, color: Colors.white60)),
+                    ),
+                  ]),
+                  Text(w.description,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+                  Text(
+                    'Feels like $feelsLikeInt$unitSymbol • H:$tempHighInt° L:$tempLowInt°',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Text('°C',
-                      style: TextStyle(fontSize: 20, color: Colors.white60)),
-                ),
-              ]),
-              Text(w.description,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[400])),
-              Text(
-                'Feels like ${w.feelsLike.round()}°C • H:${w.tempHigh.round()}° L:${w.tempLow.round()}°',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            ]),
-            const Spacer(),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Icon(w.icon, size: 40, color: const Color(0xFF2ECC71)),
-              const SizedBox(height: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: w.isGoodForHiking
-                      ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
-                      : Colors.orange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  w.isGoodForHiking ? 'Good for hiking' : 'Use caution',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: w.isGoodForHiking
-                        ? const Color(0xFF2ECC71)
-                        : Colors.orange,
+                ]),
+                const Spacer(),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Icon(w.icon, size: 40, color: const Color(0xFF2ECC71)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: w.isGoodForHiking
+                          ? const Color(0xFF2ECC71).withValues(alpha: 0.15)
+                          : Colors.orange.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      w.isGoodForHiking ? 'Good for hiking' : 'Use caution',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: w.isGoodForHiking
+                            ? const Color(0xFF2ECC71)
+                            : Colors.orange,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ]),
-          ]),
+                ]),
+              ]);
+            },
+          ),
 
           const SizedBox(height: 20),
           const Divider(color: Colors.white10, height: 1),
@@ -447,8 +459,12 @@ class _TrailCard extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(trail.name, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15)),
-            const SizedBox(height: 2),
-            Text('${trail.parkName} • ${trail.distanceKm} km', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+            ValueListenableBuilder<DistanceUnit>(
+              valueListenable: UnitService.distanceUnitNotifier,
+              builder: (context, _, __) {
+                return Text('${trail.parkName} • ${UnitService.formatDistance(trail.distanceKm)}', style: TextStyle(fontSize: 12, color: Colors.grey[500]));
+              },
+            ),
           ])),
           Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: _difficultyColor(trail.difficulty).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)), child: Text(trail.difficulty, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _difficultyColor(trail.difficulty)))),
           const SizedBox(width: 8),

@@ -15,6 +15,7 @@ import 'package:borneo_hike_v2/features/auth/screens/register_screen.dart';
 import 'package:borneo_hike_v2/features/home/screens/article_detail_screen.dart';
 import 'package:borneo_hike_v2/features/profile/screens/hike_history.dart';
 import 'package:borneo_hike_v2/features/profile/screens/user_statistics.dart';
+import 'package:borneo_hike_v2/features/profile/screens/settings_screen.dart';
 import 'package:borneo_hike_v2/models/trail.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -80,6 +81,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/user-statistics',
       builder: (_, __) => const UserStatisticsScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (_, __) => const SettingsScreen(),
     ),
   ],
 );

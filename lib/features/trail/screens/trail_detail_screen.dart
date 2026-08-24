@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import '../../../models/trail.dart';
 import '../../../services/location_weather_service.dart';
+import '../../../services/unit_service.dart';
 
 class TrailDetailScreen extends StatefulWidget {
   final Trail trail;
@@ -182,10 +183,15 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                   ),
                   child: Row(
                     children: [
-                      _TrailStat(
-                        value: '${trail.distanceKm}',
-                        unit: 'km',
-                        label: 'Distance',
+                      ValueListenableBuilder<DistanceUnit>(
+                        valueListenable: UnitService.distanceUnitNotifier,
+                        builder: (context, _, __) {
+                          return _TrailStat(
+                            value: UnitService.formatDistanceValue(trail.distanceKm),
+                            unit: UnitService.distanceSymbol,
+                            label: 'Distance',
+                          );
+                        },
                       ),
                       _buildDivider(),
                       _TrailStat(

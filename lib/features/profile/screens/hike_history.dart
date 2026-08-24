@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/hike_record.dart';
 import '../../../services/trail_service.dart';
+import '../../../services/unit_service.dart';
 
 class HikeHistoryScreen extends StatefulWidget {
   const HikeHistoryScreen({super.key});
@@ -180,10 +181,15 @@ class _SummaryHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _HeaderStat(
-                value: '${totalDist.toStringAsFixed(1)} km',
-                label: 'Distance',
-                color: const Color(0xFF2ECC71),
+              ValueListenableBuilder<DistanceUnit>(
+                valueListenable: UnitService.distanceUnitNotifier,
+                builder: (context, _, __) {
+                  return _HeaderStat(
+                    value: UnitService.formatDistance(totalDist),
+                    label: 'Distance',
+                    color: const Color(0xFF2ECC71),
+                  );
+                },
               ),
               const SizedBox(height: 6),
               _HeaderStat(
@@ -331,9 +337,14 @@ class _HikeCard extends StatelessWidget {
             // ── Quick stats ───────────────────────────────────────────────
             Row(
               children: [
-                _QuickStat(
-                  icon: Icons.straighten_rounded,
-                  value: '${record.distanceKm.toStringAsFixed(2)} km',
+                ValueListenableBuilder<DistanceUnit>(
+                  valueListenable: UnitService.distanceUnitNotifier,
+                  builder: (context, _, __) {
+                    return _QuickStat(
+                      icon: Icons.straighten_rounded,
+                      value: UnitService.formatDistance(record.distanceKm, decimals: 2),
+                    );
+                  },
                 ),
                 const SizedBox(width: 20),
                 _QuickStat(

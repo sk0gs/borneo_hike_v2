@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../models/hike_record.dart';
 import '../../../services/trail_service.dart';
+import '../../../services/unit_service.dart';
 
 // ── Period filter ─────────────────────────────────────────────────────────────
 enum _Period { week, month, allTime }
@@ -246,7 +247,7 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen>
                       const SizedBox(height: 24),
 
                       // ── Lifetime section ─────────────────────────────
-                      _SectionLabel(text: 'Lifetime'),
+                      const _SectionLabel(text: 'Lifetime'),
                       const SizedBox(height: 12),
                       _LifetimeGrid(records: _records),
                     ]),
@@ -463,10 +464,10 @@ class _BarChartPainter extends CustomPainter {
       if (data[i].count > 0 && barH > 0) {
         final fgPaint = Paint()
           ..style = PaintingStyle.fill
-          ..shader = LinearGradient(
+          ..shader = const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: const [Color(0xFF2ECC71), Color(0xFF1A9E54)],
+            colors: [Color(0xFF2ECC71), Color(0xFF1A9E54)],
           ).createShader(Rect.fromLTWH(x, barTop, barW, barH));
 
         canvas.drawRRect(
@@ -610,11 +611,16 @@ class _LifetimeGrid extends StatelessWidget {
           value: '$totalHikes',
           unit: '',
         ),
-        _LifetimeTile(
-          icon: Icons.straighten_rounded,
-          label: 'Total Distance',
-          value: totalDist.toStringAsFixed(1),
-          unit: 'km',
+        ValueListenableBuilder<DistanceUnit>(
+          valueListenable: UnitService.distanceUnitNotifier,
+          builder: (context, _, __) {
+            return _LifetimeTile(
+              icon: Icons.straighten_rounded,
+              label: 'Total Distance',
+              value: UnitService.formatDistanceValue(totalDist),
+              unit: UnitService.distanceSymbol,
+            );
+          },
         ),
         _LifetimeTile(
           icon: Icons.landscape_outlined,
